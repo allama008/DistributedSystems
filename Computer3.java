@@ -25,11 +25,12 @@ public class Computer3
 
     private static String requestFile(String fileName) throws Exception
     {
+        System.out.println("Beginning file transfer.");
         int bytes = 0;
         FileOutputStream fos = new FileOutputStream(fileName, true);
         byte buffer[] = new byte[100];
         int counter = 3;
-        while (counter > 0 && (bytes = inputStream.read(buffer, 0, 100)) != -1) 
+        while ((bytes = inputStream.read(buffer, 0, buffer.length)) != -1 && counter > 0) 
         {
             counter--;
             fos.write(buffer, 0, bytes);
@@ -42,45 +43,43 @@ public class Computer3
         if((counter > 0 && bytes == -1) || counter == 0 && bytes > 0)
             System.out.println("File size not 300KB");
         fos.close();
-        return "File successfully fetched from server ";
+        System.out.println("File Transfer Successful");
+        return "SUCCESS";
     }
 
     private static String establishConnection(String serverIP, int serverPort, String fileName)
     {
         String transferStatus = "";
-        System.out.println("1. I reached here");
         try
         {
-            InetAddress host = InetAddress.getLocalHost();
-            System.out.println(host);
-            //System.out.println(serverIP + " " + serverPort);
             Socket socket = new Socket(serverIP, serverPort);
+            System.out.println("\nConnected to system at IP Address: " + serverIP + " and Port: " + serverPort);
 
-            System.out.println("2. I reached here. Connected");
             inputStream = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
             outputStream = new DataOutputStream(socket.getOutputStream());
+            System.out.println("Inquiring about file: " + fileName);
             outputStream.writeUTF(fileName);
-            String receivedMsg = "";
             try
             {
-                receivedMsg = inputStream.readUTF();
+                transferStatus = inputStream.readUTF();
             }
             catch(IOException ioErrMsg)
             {
                 System.out.println(ioErrMsg);
             }
-            transferStatus = receivedMsg;
-            /*if(receivedMsg == "YES")
+            
+            if(transferStatus.compareTo("YES") == 0)
             {
-                transferStatus = receivedMsg;
-                //outputStream.writeUTF("FILE_REQUEST");
-                //transferStatus = requestFile(fileName);
+                System.out.println("File available at the server. Sending request for file transfer");
+                outputStream.writeUTF("FILE_REQUEST");
+                transferStatus = requestFile(fileName);
             }
-            else
-                transferStatus = "NO";*/
+            else if(transferStatus.compareTo("NO") == 0)
+                System.out.println("File is not available at the server.");
+            System.out.println("Closing IO stream and socket connections.");
             socket.close();
-            //inputStream.close();
-            //outputStream.close();
+            inputStream.close();
+            outputStream.close();
         }
         catch(Exception e)
         {
@@ -92,32 +91,36 @@ public class Computer3
     public static void main(String[] args)
     {
         String status = "";
+
+        try
+        {
+            InetAddress host = InetAddress.getLocalHost();
+            System.out.println("Computer 3 IP Address: " + host);
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+
         Scanner inputObj = new Scanner(System.in);
         System.out.println("Kindly input a file name: ");
         String inputFileName = inputObj.nextLine();
         inputObj.close();
         String serverIPAddresses[] = new String[] {"10.176.69.32", "10.176.69.33"};
-        int serverPortNumber[] = new int[] {7090, 7090};
 
-        //status = establishConnection(serverIPAddresses, serverPortNumber[0], inputFileName);
-        
-        for(int idx = 0; idx < serverPortNumber.length; idx++)
+        for(int idx = 0; idx < serverIPAddresses.length; idx++)
         {
-            status = establishConnection(serverIPAddresses[idx], serverPortNumber[idx], inputFileName);
-            System.out.println(status);
-            /* 
-            if(status == "File successfully fetched from server ")
+            status = establishConnection(serverIPAddresses[idx], 1612, inputFileName);
+            //System.out.println(status);
+            if(status == "SUCCESS")
             {
-                status = status + (int)(idx + 1);
+                //status = status + (int)(idx + 1);
+                System.out.println("\nFile successfully transferred from server " + (int)(idx + 1)) ;
                 break;
             }
-            */
         }
+        if(status.compareTo("NO") == 0 || status.compareTo("SUCCESS") != 0)
+            System.out.println("\nFile transfer failure");
         
-        if(status == "NO")
-            System.out.println("File transfer failure");
-        
-        System.out.println(status);
-
     }
 }

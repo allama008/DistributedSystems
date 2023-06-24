@@ -10,7 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.net.InetAddress;
 
-public class Computer1
+public class Computer2
 {
     private static DataInputStream inputStream = null;
     private static DataOutputStream outputStream = null;
@@ -39,7 +39,7 @@ public class Computer1
         {
             InetAddress host = InetAddress.getLocalHost();
             //System.out.println(host);
-            System.out.println("Computer 1 started in IP Address " + host + " and Port " + PORT);
+            System.out.println("Computer 2 started in IP Address " + host + " and Port " + PORT);
             Socket clientSocket = srSocket.accept();
             System.out.println("Connected to Computer 3");
             String status = "";
