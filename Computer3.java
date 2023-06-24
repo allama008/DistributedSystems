@@ -16,6 +16,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
+import java.net.InetAddress;
 
 public class Computer3
 {
@@ -44,11 +45,18 @@ public class Computer3
         return "File successfully fetched from server ";
     }
 
-    private static String establishConnection(int serverPorts, String serverIP, String fileName)
+    private static String establishConnection(String serverIP, int serverPort, String fileName)
     {
         String transferStatus = "";
-        try(Socket socket = new Socket(serverIP, serverPorts))
+        System.out.println("1. I reached here");
+        try
         {
+            InetAddress host = InetAddress.getLocalHost();
+            System.out.println(host);
+            //System.out.println(serverIP + " " + serverPort);
+            Socket socket = new Socket(serverIP, serverPort);
+
+            System.out.println("2. I reached here. Connected");
             inputStream = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
             outputStream = new DataOutputStream(socket.getOutputStream());
             outputStream.writeUTF(fileName);
@@ -61,15 +69,18 @@ public class Computer3
             {
                 System.out.println(ioErrMsg);
             }
-            /* 
-            if(receivedMsg == "YES")
-                transferStatus = requestFile(fileName);
+            transferStatus = receivedMsg;
+            /*if(receivedMsg == "YES")
+            {
+                transferStatus = receivedMsg;
+                //outputStream.writeUTF("FILE_REQUEST");
+                //transferStatus = requestFile(fileName);
+            }
             else
-                transferStatus = "NO";
-            */
+                transferStatus = "NO";*/
             socket.close();
-            inputStream.close();
-            outputStream.close();
+            //inputStream.close();
+            //outputStream.close();
         }
         catch(Exception e)
         {
@@ -85,20 +96,24 @@ public class Computer3
         System.out.println("Kindly input a file name: ");
         String inputFileName = inputObj.nextLine();
         inputObj.close();
+        String serverIPAddresses[] = new String[] {"10.176.69.32", "10.176.69.33"};
+        int serverPortNumber[] = new int[] {7090, 7090};
 
-        String serverIPAddresses = new String("127.0.0.1");
-        int serverPortNumber[] = new int[] {1600, 1601};
-
+        //status = establishConnection(serverIPAddresses, serverPortNumber[0], inputFileName);
+        
         for(int idx = 0; idx < serverPortNumber.length; idx++)
         {
-            status = establishConnection(serverPortNumber[idx], serverIPAddresses, inputFileName);
+            status = establishConnection(serverIPAddresses[idx], serverPortNumber[idx], inputFileName);
+            System.out.println(status);
+            /* 
             if(status == "File successfully fetched from server ")
             {
                 status = status + (int)(idx + 1);
                 break;
             }
+            */
         }
-
+        
         if(status == "NO")
             System.out.println("File transfer failure");
         
