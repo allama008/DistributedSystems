@@ -67,6 +67,18 @@ public class Computer2
             {
                 // Recieve file name from the client.
                 String requestFileName = inputStream.readUTF();
+
+                // In case the client has already found the file in another server. Terminate all socket connections and return.
+                if(requestFileName.compareTo("TERMINATE_CONNECTION") == 0)
+                {
+                    System.out.println("Client has found the file. Closing IO stream and client-server socket connections.");
+                    outputStream.writeUTF("NO");
+                    outputStream.close();
+                    inputStream.close();
+                    srSocket.close();
+                    clientSocket.close();
+                    return;
+                }
                 System.out.println("File name: " + requestFileName + " requested by Computer 3.");
                 
                 // Prepare the file name by appending it with the absolute directory path.

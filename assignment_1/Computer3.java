@@ -77,7 +77,10 @@ public class Computer3
 
             inputStream = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
             outputStream = new DataOutputStream(socket.getOutputStream());
-            System.out.println("Inquiring about file: " + fileName);
+            if(fileName.compareTo("TERMINATE_CONNECTION") == 0)
+                System.out.println("Sending Socket Connection Termination Request.");
+            else
+                System.out.println("Inquiring about file: " + fileName);
 
             // Send an inquiry message to the server to check if file is present or not.
             outputStream.writeUTF(fileName);
@@ -115,7 +118,7 @@ public class Computer3
 
     public static void main(String[] args)
     {
-        String status = "";
+        String status = "", tempStatus = "";
 
         // Miscellaneous functionality to check the IP address of the client machine.
         try
@@ -141,6 +144,8 @@ public class Computer3
             if(status == "SUCCESS")
             {
                 System.out.println("\nFile successfully fetched from server " + (int)(idx + 1)) ;
+                if(idx == 0)
+                    tempStatus = establishConnection(serverIPAddresses[idx+1], 1612, "TERMINATE_CONNECTION");
                 break;
             }
         }
