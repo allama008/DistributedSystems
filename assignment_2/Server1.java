@@ -7,6 +7,11 @@ public class Server1
 {
     private static int PORT = 1612;
     private List<Socket> connectedServers;
+    private DataInputStream inputStream = null;
+    private DataOutputStream outputStream = null;
+    Thread mainConnectThread;
+    public volatile boolean isThreadRunning = true;
+    Connect t1;
     
     public Server1()
     {
@@ -15,26 +20,42 @@ public class Server1
 
     public void start()
     {
-        new Thread(new userAction()).start();
-        new Thread(new connect()).start();
+        new Thread(new userAction()).start(); 
+        // mainConnectThread = new Thread(new Server1().new Connect());
+        // mainConnectThread.start();
+        t1 = new Connect();
+        // new Thread(new Connect()).start();
     }
 
-    private class connect implements Runnable
+    private class Connect implements Runnable
     {
-        private static DataInputStream inputStream = null;
-        private static DataOutputStream outputStream = null;
+        Thread t;
+        ServerSocket serverSocket;
+
+        Connect()
+        {
+            t = new Thread(this);
+            t.start();
+        }
         @Override
         public void run()
         {
-            try(ServerSocket serverSocket = new ServerSocket(PORT))
+            try
             {
+                serverSocket = new ServerSocket(PORT);
                 System.out.println("Listening for incoming connection requests.");
-                while(true)
+                while(!Thread.interrupted())
                 {
                     Socket newServer = serverSocket.accept();
                     connectedServers.add(newServer);
                     new Thread(() -> incomingRequest(newServer)).start();
                 }
+                //System.out.println("Am I out?");
+                //serverSocket.close();
+            }
+            catch(SocketException se)
+            {
+                System.out.println("This connection is now closed.");
             }
             catch(Exception e)
             {
@@ -66,9 +87,44 @@ public class Server1
         }
     }
 
+    private class Message
+    {
+        String fileName;
+        Socket messageSource;
+        int hopCount;
+
+        public Message(String fileName, Socket messageSource, int hopCount)
+        {
+            this.fileName = fileName;
+            this.messageSource = messageSource;
+            this.hopCount = hopCount;
+        }
+    }
+
     //Separate thread only to listen to user request.
     private class userAction implements Runnable
     {
+        private void depart()
+        {
+
+            try 
+            {
+                // inputStream.close();
+                // outputStream.close();
+                System.out.println("I reached here!");
+                //isThreadRunning = false;
+                //control.flag = true;
+                //mainConnectThread.interrupt();
+                //t1.t.interrupt();
+                t1.serverSocket.close();
+            } 
+            catch (Exception e) 
+            {
+                // TODO: handle exception
+                e.printStackTrace();
+            }
+        } 
+
         @Override
         public void run()
         {
@@ -89,14 +145,17 @@ public class Server1
                     case 2:
                         System.out.println("Inside the part for departure.");
                         //Call the function to depart from the network.
+                        depart();
                         break;
-                   default:
+                    default:
                         System.out.println("Wrong input. Please enter input between [1-2].");
                 }
             }while(ch != 2);
             sc.close();
         }
+
     }
+
     public static void main(String[] args)
     {
         Server1 serverObj = new Server1();
